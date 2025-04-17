@@ -70,6 +70,6 @@ add the flag `--workers 0` to the command to fix this.
 ```
 @article{lin2025noiseformer,
          title={Towards a General-Purpose Zero-Shot Synthetic Low-Light Image and Video Pipeline},
-         author={Lin, Joanne and Morris, Crispian, and Lin, Ruirui and Zhang, Fan and Anatrasirichai, Nantheera and Bull, David},
+         author={Lin, Joanne and Morris, Crispian, and Lin, Ruirui and Zhang, Fan and Bull, David and Anatrasirichai, Nantheera},
          year={2025},
          publisher={arXiv}}

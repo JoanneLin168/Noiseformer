@@ -1,0 +1,20 @@
+name: noiseformer
+channels:
+  - defaults
+dependencies:
+  - cudatoolkit=11.3
+  - torchvision
+  - torchaudio
+  - torchmetrics
+  - pytorch
+  - ipython
+  - nb_conda
+  - matplotlib
+  - scipy
+  - opencv
+  - scikit-image
+  - pandas
+  - scikit-learn
+  - lpips
+  - yacs
+  - tensorboard

@@ -1,5 +1,7 @@
 # Noiseformer
+
 **Authors**: _Joanne Lin, Crispian Morris, Ruirui Lin, Fan Zhang, David Bull, Nantheera Anantrasirichai_
+
 **Institution**: Visual Information Laboratory, University of Bristol, United Kingdom
 
 [[`arXiv`](https://arxiv.org/abs/2504.12169)]

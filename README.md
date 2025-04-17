@@ -1,4 +1,4 @@
-# Noiseformer
+# Towards a General-Purpose Zero-Shot Synthetic Low-Light Image and Video Pipeline
 
 **Authors**: _Joanne Lin, Crispian Morris, Ruirui Lin, Fan Zhang, David Bull, Nantheera Anantrasirichai_
 
@@ -30,7 +30,7 @@ ln -s <path-to-train-data> ./data/train_all_frames
 
 Your directory tree should look something like this:
 ```
-Noiseformer/
+degradation-estimation-network/
 ├── data/
 │ ├── train_all_frames/
 │ | └── JPEGImages/
@@ -70,7 +70,7 @@ add the flag `--workers 0` to the command to fix this.
 
 ## Citation
 ```
-@article{lin2025noiseformer,
+@article{lin2025den,
          title={Towards a General-Purpose Zero-Shot Synthetic Low-Light Image and Video Pipeline},
          author={Lin, Joanne and Morris, Crispian, and Lin, Ruirui and Zhang, Fan and Bull, David and Anatrasirichai, Nantheera},
          year={2025},

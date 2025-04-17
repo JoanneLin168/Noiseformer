@@ -1,4 +1,4 @@
-name: noiseformer
+name: DEN
 channels:
   - defaults
 dependencies:

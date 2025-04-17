@@ -59,7 +59,7 @@ python train.py
 ```
 
 ## Inference
-Currently not implemented yet.
+Currently not implemented yet. Feel free to use our released [weights](https://github.com/JoanneLin168/degradation-estimation-network/releases/download/v1.0/best.pt).
 
 ## Known bugs
 If you see a warning message like this:

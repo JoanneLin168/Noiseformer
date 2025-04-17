@@ -10,4 +10,7 @@ ipython_config.py
 *.tiff
 *.npy 
 *.pt
-/data/*
+
+runs/
+data/
+data

@@ -69,9 +69,11 @@ If you see a warning message like this:
 add the flag `--workers 0` to the command to fix this.
 
 ## Citation
+If you use our work in your research, please cite using the following BibTeX entry:
 ```
 @article{lin2025den,
          title={Towards a General-Purpose Zero-Shot Synthetic Low-Light Image and Video Pipeline},
          author={Lin, Joanne and Morris, Crispian, and Lin, Ruirui and Zhang, Fan and Bull, David and Anatrasirichai, Nantheera},
          year={2025},
          publisher={arXiv}}
+```

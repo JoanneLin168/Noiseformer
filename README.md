@@ -1,4 +1,4 @@
-# Towards a General-Purpose Zero-Shot Synthetic Low-Light Image and Video Pipeline
+# Towards a General-Purpose Zero-Shot Synthetic Low-Light Image and Video Pipeline [arXiv preprint]
 
 **Authors**: _Joanne Lin, Crispian Morris, Ruirui Lin, Fan Zhang, David Bull, Nantheera Anantrasirichai_
 

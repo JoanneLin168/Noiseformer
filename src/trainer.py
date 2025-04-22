@@ -42,11 +42,7 @@ class Trainer():
                                                 batch_size=args.batch_size,
                                                 shuffle=False,
                                                 num_workers=args.workers)
-        
-    def save_image(self, img, name, folder):
-        os.makedirs(folder, exist_ok=True)
-        file_path = folder+name
-        Image.fromarray((np.clip(img,0,1) * 255).astype(np.uint8)).save(file_path)
+
 
     def train(self):
         total_loss = 0
@@ -119,7 +115,7 @@ class Trainer():
         best_kld = 1e6
         self.model.eval()
 
-        for i, sample in enumerate(tqdm.tqdm(self.val_loader, desc='Validating')):
+        for sample in tqdm.tqdm(self.val_loader, desc='Validating'):
             with torch.no_grad():
 
                 noisy_frames = sample['noisy'].to(self.device)
@@ -157,28 +153,6 @@ class Trainer():
                 fid_metric.update(synth_int, real=False)
                 kid_metric.update(real_int, real=True)
                 kid_metric.update(synth_int, real=False)
-
-            # Reshape output back to [B, C, N, H, W]
-            noisy_frames = noisy_frames.view(B, -1, N, H, W)
-            clean_frames = clean_frames.view(B, -1, N, H, W)
-            synth_noisy_full = synth_noisy_full.view(B, -1, N, H, W)
-            recon_imgs = recon_imgs.view(B, -1, N, H, W)
-            pred_labels = pred_labels.view(B, N, -1)
-
-            # Save full images during validation (only from the first batch)
-            for n in range(N):
-                gt_plt = noisy_frames.cpu().detach().numpy()[0][:, n].transpose(1,2,0)[...,0:3]
-                clean_plt = clean_frames.cpu().detach().numpy()[0][:, n].transpose(1,2,0)[...,0:3]
-                out_plt = synth_noisy_full.cpu().detach().numpy()[0][:, n].transpose(1,2,0)[...,0:3]
-                recon_plt = recon_imgs.cpu().detach().numpy()[0][:, n].transpose(1,2,0)[...,0:3]
-
-                output_folder = self.folder_name + f'val_images/epoch{self.curr_epoch}/video_{i}/'
-                img_name = f'frame_{n}.jpg'
-
-                self.save_image(gt_plt, img_name, output_folder+'gt/')
-                self.save_image(clean_plt, img_name, output_folder+'clean/')
-                self.save_image(out_plt, img_name, output_folder+'pred/')
-                self.save_image(recon_plt, img_name, output_folder+'recon/')
 
 
         avg_kld = tot_kld/len(self.val_loader)

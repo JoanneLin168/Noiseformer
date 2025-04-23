@@ -9,7 +9,8 @@ class NoiseEstimatorReconNet(nn.Module):
     """
     This will be the very basic CNN model we will use for the regression task.
     """
-    def __init__(self, in_channels=1, noise_list='shot_read_uniform_row1_rowt_periodic', opts='residualFalse_conv_tconv_selu', device='cuda',patch_size=(256, 256)):
+    def __init__(self, in_channels=1, noise_list='shot_read_uniform_row1_rowt_periodic',
+                 opts='residualFalse_conv_tconv_selu', device='cuda',patch_size=(256, 256)):
         super(NoiseEstimatorReconNet, self).__init__()
         self.num_classes = len(noise_list.split('_'))
         if 'periodic' in noise_list:
@@ -29,13 +30,10 @@ class NoiseEstimatorReconNet(nn.Module):
 
         self.initialized = False
         self.conv1 = nn.Conv2d(in_channels=self.embed_dim, out_channels=2*self.embed_dim, kernel_size=3, stride=1, padding=1)
-        self.pool1 = nn.MaxPool2d(kernel_size=2, stride=2)
         self.conv2 = nn.Conv2d(in_channels=2*self.embed_dim, out_channels=2*self.embed_dim, kernel_size=3, stride=1, padding=1)
-        self.pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         div = 2**4 # 4 downsample layers
         self.linear_line_size = int(2*self.embed_dim * (patch_size[-2]//div)*(patch_size[-1]//div))
-        # self.linear_line_size = int(2*self.embed_dim * (patch_size[-2]//div)*(patch_size[-1]//div) // 4) # // 4 for pooling
         self.fc1 = nn.Linear(in_features=self.linear_line_size, out_features=128)
         self.fc2 = nn.Linear(in_features=128, out_features=self.num_classes)
         self.act = nn.Tanh()

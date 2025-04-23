@@ -47,7 +47,8 @@ class Trainer():
     def train(self):
         total_loss = 0
         self.model.train()
-        for i, sample in enumerate(tqdm.tqdm(self.train_loader, desc=f'Training')):
+        for sample in tqdm.tqdm(self.train_loader, desc=f'Training'):
+
             noisy_frames = sample['noisy'].to(self.device)
             clean_frames = sample['clean'].to(self.device)
             gt_labels = sample['gt_labels'].to(self.device)
@@ -60,38 +61,33 @@ class Trainer():
             clean_frames = clean_frames.view(B * N, C, H, W)
 
             # Generate a batch of images
-            synth_noisy, recon_imgs, pred_labels = self.model(clean_frames, noisy_frames)
+            synth_noisy, recon_frames, pred_labels = self.model(clean_frames, noisy_frames)
 
             # Patchify the images if needed
             if self.patch_size > self.eval_patch_size:
                 synth_noisy = utils.split_into_patches2d(synth_noisy, self.eval_patch_size).to(self.device)
-                recon_imgs = utils.split_into_patches2d(recon_imgs, self.eval_patch_size).to(self.device)
+                recon_frames = utils.split_into_patches2d(recon_frames, self.eval_patch_size).to(self.device)
                 real_noisy = utils.split_into_patches2d(noisy_frames, self.eval_patch_size).to(self.device)
-                clean = utils.split_into_patches2d(clean_frames, self.eval_patch_size).to(self.device)
+                clean_frames = utils.split_into_patches2d(clean_frames, self.eval_patch_size).to(self.device)
             else:
                 real_noisy = noisy_frames
-                clean = clean_frames
 
             # Display images during training (before FFT for visualization)
             if self.total_iter % self.display_freq == 0:
                 gt_plt = real_noisy.cpu().detach()[0]
                 out_plt = synth_noisy.cpu().detach()[0]
-                recon_plt = recon_imgs.cpu().detach()[0]
+                recon_plt = recon_frames.cpu().detach()[0]
                 concatenated_images = torch.cat((gt_plt, out_plt, recon_plt), dim=2)
                 self.writer.add_image(f'Train/Images_(gt - out - recon)', concatenated_images, self.total_iter)
 
             # Reshape output back to [B, C, N, H, W]
-            synth_noisy = synth_noisy.view(B, -1, N, H, W)
-            recon_imgs = recon_imgs.view(B, -1, N, H, W)
-            clean = clean.view(B, -1, N, H, W)
+            synth_noisy = synth_noisy.view(B, C, N, H, W)
+            recon_frames = recon_frames.view(B, C, N, H, W)
+            clean_frames = clean_frames.view(B, C, N, H, W)
             pred_labels = pred_labels.view(B, N, -1)
-
-            # Apply fourier transform for loss calculation
-            real_noisy = torch.abs(torch.fft.fftshift(torch.fft.fft2(real_noisy, norm="ortho")))
-            synth_noisy = torch.abs(torch.fft.fftshift(torch.fft.fft2(synth_noisy, norm="ortho")))
   
             mlp_loss = F.mse_loss(pred_labels, gt_labels)
-            recon_loss = F.l1_loss(recon_imgs, clean)
+            recon_loss = F.l1_loss(recon_frames, clean_frames)
             loss = self.w1 * mlp_loss + self.w2 * recon_loss
 
             if self.total_iter % self.log_freq == 0:
@@ -101,9 +97,9 @@ class Trainer():
 
             loss.backward()
             self.optimizer.step()
-
+            total_loss += loss.item()
+            
             self.total_iter += 1
-            total_loss = loss.item()
 
         print('Epoch:', self.curr_epoch, 'Total Loss:', total_loss)
 
@@ -132,14 +128,13 @@ class Trainer():
                 if self.patch_size > self.eval_patch_size:
                     synth_noisy = utils.split_into_patches2d(synth_noisy_full, self.eval_patch_size).to(self.device)
                     real_noisy = utils.split_into_patches2d(noisy_frames, self.eval_patch_size).to(self.device)
-                    clean = utils.split_into_patches2d(clean_frames, self.eval_patch_size).to(self.device)
+                    clean_frames = utils.split_into_patches2d(clean_frames, self.eval_patch_size).to(self.device)
                 else:
                     synth_noisy = synth_noisy_full
                     real_noisy = noisy_frames
-                    clean = clean_frames
 
-                synth_noisemap = synth_noisy-clean
-                real_noisemap = real_noisy-clean
+                synth_noisemap = synth_noisy-clean_frames
+                real_noisemap = real_noisy-clean_frames
 
                 synth_np = (synth_noisemap.view(B, N, C, H, W)).detach().cpu().numpy()
                 real_np = (real_noisemap.view(B, N, C, H, W)).detach().cpu().numpy()

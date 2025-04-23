@@ -23,14 +23,27 @@ class Trainer():
         self.patch_size = args.patch_size
         self.eval_patch_size = args.eval_patch_size
         self.num_epochs = args.epochs
+        self.start_epoch = 0
         self.curr_epoch = 0
         self.total_iter = 0
+        self.best_kld = 1e6
 
         self.model = model
         self.device = args.device
         self.optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, betas=(args.b1, args.b2))
         self.w1 = args.w1
         self.w2 = args.w2
+        
+        # Load checkpoint if specified
+        if args.checkpoint:
+            checkpoint = torch.load(args.checkpoint)
+            self.start_epoch = checkpoint['epoch'] + 1
+            self.curr_epoch = checkpoint['epoch'] + 1
+            self.total_iter = checkpoint['total_iter'] + 1
+            self.best_kld = checkpoint['avg_kld']
+            self.model.load_state_dict(checkpoint['model_state_dict'])
+            self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+            print(f"Loaded checkpoint from {args.checkpoint}. Will train from epoch {checkpoint['epoch'] + 1}.")
         
         # Dataloaders
         self.train_loader = torch.utils.data.DataLoader(dataset=train_set, 
@@ -78,6 +91,7 @@ class Trainer():
                 out_plt = synth_noisy.cpu().detach()[0]
                 recon_plt = recon_frames.cpu().detach()[0]
                 concatenated_images = torch.cat((gt_plt, out_plt, recon_plt), dim=2)
+                concatenated_images = torch.clamp(concatenated_images, 0, 1)
                 self.writer.add_image(f'Train/Images_(gt - out - recon)', concatenated_images, self.total_iter)
 
             # Reshape output back to [B, C, N, H, W]
@@ -108,7 +122,6 @@ class Trainer():
         kid_metric = KernelInceptionDistance().to(self.device)
         fid_metric = FrechetInceptionDistance().to(self.device)
         tot_kld = 0
-        best_kld = 1e6
         self.model.eval()
 
         for sample in tqdm.tqdm(self.val_loader, desc='Validating'):
@@ -161,6 +174,7 @@ class Trainer():
         # Save checkpoint
         checkpoint = {
             'epoch': self.curr_epoch,
+            'total_iter': self.total_iter,
             'model_state_dict': self.model.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict(),
             'avg_kld': avg_kld,
@@ -175,10 +189,17 @@ class Trainer():
             torch.save(checkpoint, checkpoint_name)
 
         # Save the best checkpoint based on KLD score
-        if self.curr_epoch == 0 or avg_kld < best_kld:
-            best_kld = avg_kld
+        if self.curr_epoch == 0 or avg_kld < self.best_kld:
+            self.best_kld = avg_kld
             best_checkpoint_name = self.folder_name + 'checkpoints/best.pt'
             print('Saving best checkpoint')
             torch.save(checkpoint, best_checkpoint_name)
 
         self.curr_epoch += 1
+
+    def run(self):
+        # Training loop
+        for epoch in range(self.start_epoch, self.epochs):
+            print(f"\n[Epoch {epoch+1}/{self.epochs}]")
+            self.train()
+            self.validate()

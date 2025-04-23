@@ -26,7 +26,9 @@ def set_seed(seed):
 def get_arguments():
     parser = argparse.ArgumentParser(description='Gan noise model training options.')
     parser.add_argument('--dataset_root', default="./data", help='Path to dataset')
-    parser.add_argument('--output_folder', default = './runs/', help='Specify where to save checkpoints during training') 
+    parser.add_argument('--output_folder', default = './runs/', help='Specify where to save checkpoints during training')
+
+    parser.add_argument('--checkpoint', default=None, type=str, help='Path to checkpoint to load')
 
     parser.add_argument('--num_vid_frames', default=16, type=int, help='Number of frames to sample from each video')
     parser.add_argument('--noiselist', default='shot_read_uniform_row1_rowt_periodic', help = 'Specify the type of noise to include. \Options: read, shot, uniform, row1, rowt, periodic')
@@ -75,13 +77,10 @@ def main(args):
     val_set = ValidationDataset(args, split='valid')
     model = NoiseGenerator(in_channels=3, out_channels=3, noise_list=args.noiselist, patch_size=(args.patch_size, args.patch_size), device=args.device)
     model.to(args.device)
-    trainer = Trainer(args, model, train_set, val_set, writer)
 
-    # Training loop
-    for epoch in range(args.epochs):
-        print(f"\n[Epoch {epoch+1}/{args.epochs}]")
-        trainer.train()
-        trainer.validate()
+    # Create trainer
+    trainer = Trainer(args, model, train_set, val_set, writer)
+    trainer.run()
 
     writer.close()
     print("Finished training!")
